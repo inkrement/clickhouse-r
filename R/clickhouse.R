@@ -265,3 +265,10 @@ setMethod("dbIsValid", "clickhouse_result", definition = function(dbObj, ...) {
 	dbObj@env$success && dbObj@env$open
 })
 
+#' @export
+setMethod("dbQuoteIdentifier", c("clickhouse_connection", "character"),
+  function(conn, x, ...) {
+    x <- gsub('`', '``', x, fixed = TRUE)
+    SQL(paste('`', x, '`', sep = ""))
+  }
+)
