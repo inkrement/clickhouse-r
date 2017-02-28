@@ -2,6 +2,7 @@
 # borrowed from dplyr R/utils.r
 "%||%" <- function(x, y) if (is.null(x)) y else x
 
+#' @export
 src_clickhouse <- function(dbname = "", host = "localhost", port = 8123L, user = "",
                            password = "", ...) {
   if (!requireNamespace("dplyr", quietly = TRUE)) {
