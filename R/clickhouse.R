@@ -241,7 +241,7 @@ setMethod("dbDisconnect", "clickhouse_connection", function(conn, ...) {
 })
 
 #' @export
-setMethod("dbQuoteIdentifier", "clickhouse_connection", definition = function(conn, x, ...) {
+setMethod("dbQuoteIdentifier", c("clickhouse_connection", "character"), function(conn, x, ...) {
   x <- gsub('`', '``', x, fixed = TRUE)
   SQL(paste('`', x, '`', sep = ""))
 })
