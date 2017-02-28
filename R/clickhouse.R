@@ -18,6 +18,7 @@ setClass("clickhouse_result",
   )
 )
 
+#' @export
 setMethod("dbGetInfo", "clickhouse_connection", def=function(dbObj, ...) {
   envdata <- dbGetQuery(dbObj, "SELECT version() as version, uptime() as uptime, 
                         currentDatabase() as database")
@@ -34,14 +35,17 @@ setMethod("dbGetInfo", "clickhouse_connection", def=function(dbObj, ...) {
   ll
 })
 
+#' @export
 setMethod("dbIsValid", "clickhouse_driver", function(dbObj, ...) {
   TRUE
 })
 
+#' @export
 setMethod("dbUnloadDriver", "clickhouse_driver", function(drv, ...) {
   invisible(TRUE)
 })
 
+#' @export
 setMethod("dbIsValid", "clickhouse_connection", function(dbObj, ...) {
 	tryCatch({
 		dbGetQuery(dbObj, "select 1")
@@ -52,10 +56,12 @@ setMethod("dbIsValid", "clickhouse_connection", function(dbObj, ...) {
 	})
 })
 
+#' @export
 clickhouse <- function() {
   new("clickhouse_driver")
 }
 
+#' @export
 setMethod("dbConnect", "clickhouse_driver",
   function(drv, host="localhost", port=8123L, user="default", password="", ...) {
     con <- new("clickhouse_connection",
@@ -66,23 +72,28 @@ setMethod("dbConnect", "clickhouse_driver",
   }
 )
 
+#' @export
 setMethod("dbListTables", "clickhouse_connection", function(conn, ...) {
 	as.character(dbGetQuery(conn, "SHOW TABLES")[[1]])
 })
 
+#' @export
 setMethod("dbExistsTable", "clickhouse_connection", function(conn, name, ...) {
 	as.logical(name %in% dbListTables(conn))
 })
 
+#' @export
 setMethod("dbReadTable", "clickhouse_connection", function(conn, name, ...) {
 	dbGetQuery(conn, paste0("SELECT * FROM ", name))
 })
 
+#' @export
 setMethod("dbRemoveTable", "clickhouse_connection", function(conn, name, ...) {
 	dbExecute(conn, paste0("DROP TABLE ", name))
 	invisible(TRUE)
 })
 
+#' @export
 setMethod("dbSendQuery", "clickhouse_connection", function(conn, statement, use = c("memory", "temp"), ...) {
   # with use = "temp" we try to avoid exception with long vectors conversion in rawToChar
   # <simpleError in rawToChar(req$content): long vectors are not supported yet: raw.c:68>
@@ -146,6 +157,7 @@ setMethod("dbSendQuery", "clickhouse_connection", function(conn, statement, use 
     )
 })
 
+#' @export
 setMethod("dbWriteTable", signature(conn = "clickhouse_connection", name = "character", value = "ANY"), definition = function(conn, name, value, overwrite=FALSE,
   append=FALSE, engine="TinyLog", ...) {
    if (is.vector(value) && !is.list(value)) value <- data.frame(x = value, stringsAsFactors = F)
@@ -199,6 +211,7 @@ setMethod("dbWriteTable", signature(conn = "clickhouse_connection", name = "char
   return(invisible(TRUE))
 })
 
+#' @export
 setMethod("dbDataType", signature(dbObj="clickhouse_connection", obj = "ANY"), definition = function(dbObj,
                                                                                           obj, ...) {
   if (is.logical(obj)) "UInt8"
@@ -207,22 +220,33 @@ setMethod("dbDataType", signature(dbObj="clickhouse_connection", obj = "ANY"), d
   else "String"
 }, valueClass = "character")
 
+#' @export
 setMethod("dbBegin", "clickhouse_connection", definition = function(conn, ...) {
 	stop("Transactions are not supported.")
 })
 
+#' @export
 setMethod("dbCommit", "clickhouse_connection", definition = function(conn, ...) {
 	stop("Transactions are not supported.")
 })
 
+#' @export
 setMethod("dbRollback", "clickhouse_connection", definition = function(conn, ...) {
 	stop("Transactions are not supported.")
 })
 
+#' @export
 setMethod("dbDisconnect", "clickhouse_connection", function(conn, ...) {
   invisible(TRUE)
 })
 
+#' @export
+setMethod("dbQuoteIdentifier", "clickhouse_connection", definition = function(conn, x, ...) {
+  x <- gsub('`', '``', x, fixed = TRUE)
+  SQL(paste('`', x, '`', sep = ""))
+})
+
+#' @export
 setMethod("fetch", signature(res = "clickhouse_result", n = "numeric"), definition = function(res, n, ...) {
   if (!dbIsValid(res) || dbHasCompleted(res)) {
     stop("Cannot fetch results from exhausted, closed or invalid response.")
@@ -248,27 +272,23 @@ setMethod("fetch", signature(res = "clickhouse_result", n = "numeric"), definiti
   }
 })
 
+#' @export
 setMethod("dbGetRowsAffected", "clickhouse_result", definition = function(res, ...) {
     as.numeric(NA)
 })
 
+#' @export
 setMethod("dbClearResult", "clickhouse_result", definition = function(res, ...) {
     res@env$open <- FALSE
     invisible(TRUE)
 })
 
+#' @export
 setMethod("dbHasCompleted", "clickhouse_result", definition = function(res, ...) {
 	res@env$delivered >= res@env$rows
  })
 
+#' @export
 setMethod("dbIsValid", "clickhouse_result", definition = function(dbObj, ...) {
 	dbObj@env$success && dbObj@env$open
 })
-
-#' @export
-setMethod("dbQuoteIdentifier", c("clickhouse_connection", "character"),
-  function(conn, x, ...) {
-    x <- gsub('`', '``', x, fixed = TRUE)
-    SQL(paste('`', x, '`', sep = ""))
-  }
-)
