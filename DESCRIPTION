@@ -21,3 +21,4 @@ BugReports: https://github.com/hannesmuehleisen/clickhouse-r/issues
 Collate:
     'clickhouse.R'
     'dplyr.R'
+RoxygenNote: 6.0.1
